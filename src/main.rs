@@ -53,6 +53,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         },
                     )
                     .await?;
+                    sqlx::query!(
+                        r#"UPDATE hackers SET reputation = ?1 WHERE user_id = ?2"#,
+                        hacker.reputation,
+                        hacker.user_id
+                    )
+                    .execute(&mut conn)
+                    .await?;
                 }
             }
             Err(_) => {

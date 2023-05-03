@@ -18,7 +18,7 @@ pub async fn send_new_user(hacker: &HackerOneThanks) -> Result<(), SerenityError
                 "**{}** `({})` was added with **{}** reputation\n\n**Profile:** {}",
                 hacker.username, hacker.user_id, hacker.reputation, hacker.profile_url
             ))
-            .image(get_hacker_avatar(&hacker.username))
+            .thumbnail(get_hacker_avatar(&hacker.username))
     });
 
     webhook
@@ -65,7 +65,7 @@ pub async fn send_updated_rep(
                 new_hacker.reputation - old_hacker.reputation,
                 new_hacker.profile_url
             ))
-            .image(get_hacker_avatar(&new_hacker.username))
+            .thumbnail(get_hacker_avatar(&new_hacker.username))
     });
 
     webhook
