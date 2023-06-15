@@ -1,3 +1,4 @@
 /target
 .env
-hackerone.db
+*.db-*
+*.db
