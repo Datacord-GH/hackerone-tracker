@@ -1,6 +1,5 @@
 mod discord;
 mod models;
-mod utils;
 
 use discord::{send_new_user, send_updated_rep};
 use dotenv::dotenv;
@@ -8,6 +7,8 @@ use models::HackerOneThanks;
 use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use std::env;
 use tokio::main;
+
+use crate::models::HackerOneThanksDB;
 
 #[main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -35,8 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .execute(&mut conn)
     .await?;
 
-    println!("Fetching '/thanks' worker");
-    let hackers = reqwest::get("https://hackerone-api.discord.workers.dev/thanks")
+    let hackers = reqwest::get("https://h1rep.jup.workers.dev/")
         .await?
         .json::<Vec<HackerOneThanks>>()
         .await?;
@@ -45,8 +45,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for hacker in hackers {
         let hacker_db =
-            sqlx::query_as::<_, HackerOneThanks>("SELECT * FROM hackers WHERE user_id = ?")
-                .bind(&hacker.user_id)
+            sqlx::query_as::<_, HackerOneThanksDB>("SELECT * FROM hackers WHERE user_id = ?")
+                .bind(&hacker.id)
                 .fetch_one(&pool)
                 .await;
 
@@ -56,17 +56,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     send_updated_rep(
                         &hacker,
                         &HackerOneThanks {
-                            profile_url: old.profile_url,
-                            user_id: old.user_id,
+                            avatar_url: "".to_string(),
+                            id: old.user_id,
                             username: old.username,
                             reputation: old.reputation,
+                            position: 0,
                         },
                     )
                     .await?;
 
                     sqlx::query("UPDATE hackers SET reputation = ? WHERE user_id = ?")
                         .bind(&hacker.reputation)
-                        .bind(&hacker.user_id)
+                        .bind(&hacker.id)
                         .execute(&mut conn)
                         .await?;
                 }
@@ -75,10 +76,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 send_new_user(&hacker).await?;
 
                 sqlx::query("INSERT INTO hackers (user_id, username, reputation, profile_url) VALUES (?, ?, ?, ?)")
-                    .bind(&hacker.user_id)
+                    .bind(&hacker.id)
                     .bind(&hacker.username)
                     .bind(&hacker.reputation)
-                    .bind(&hacker.profile_url)
+                    .bind(&hacker.get_hackerone_url())
                     .execute(&mut conn)
                     .await?;
             }

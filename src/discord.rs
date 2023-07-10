@@ -1,5 +1,4 @@
 use crate::models::HackerOneThanks;
-use crate::utils::get_hacker_avatar;
 use serenity::prelude::SerenityError;
 use serenity::{http::Http, model::channel::Embed, model::webhook::Webhook, utils::Colour};
 use std::cmp::Ordering;
@@ -15,10 +14,10 @@ pub async fn send_new_user(hacker: &HackerOneThanks) -> Result<(), SerenityError
     let hackerone_embed = Embed::fake(|e| {
         e.colour(Colour::from_rgb(0, 0, 1))
             .description(format!(
-                "**{}** `({})` was added with **{}** reputation\n\n**Profile:** {}",
-                hacker.username, hacker.user_id, hacker.reputation, hacker.profile_url
+                "**{}** `({})` was added with **{}** reputation\n**Position:** {}\n\n**Profile:** {}",
+                hacker.username, hacker.id, hacker.reputation, hacker.position, hacker.get_hackerone_url()
             ))
-            .thumbnail(get_hacker_avatar(&hacker.username))
+            .thumbnail(&hacker.get_avatar_url())
     });
 
     webhook
@@ -56,16 +55,17 @@ pub async fn send_updated_rep(
     let hackerone_embed = Embed::fake(|e| {
         e.colour(Colour::from_rgb(0, 0, 1))
             .description(format!(
-                "**{}** `({})` reputation {} from **{}** to **{}** `({})`\n\n**Profile:** {}",
+                "**{}** `({})` reputation {} from **{}** to **{}** `({})`\n**Position:** {}\n\n**Profile:** {}",
                 new_hacker.username,
-                new_hacker.user_id,
+                new_hacker.id,
                 what_way,
                 old_hacker.reputation,
                 new_hacker.reputation,
                 new_hacker.reputation - old_hacker.reputation,
-                new_hacker.profile_url
+                new_hacker.position,
+                new_hacker.get_hackerone_url()
             ))
-            .thumbnail(get_hacker_avatar(&new_hacker.username))
+            .thumbnail(&new_hacker.get_avatar_url())
     });
 
     webhook
