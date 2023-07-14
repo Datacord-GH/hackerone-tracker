@@ -52,10 +52,12 @@ pub async fn send_updated_rep(
         Ordering::Equal => String::from("didnt change"),
     };
 
+    let reputation_type = old_hacker.reputation_type(new_hacker.reputation - old_hacker.reputation);
+
     let hackerone_embed = Embed::fake(|e| {
         e.colour(Colour::from_rgb(0, 0, 1))
             .description(format!(
-                "**{}** `({})` reputation {} from **{}** to **{}** `({})`\n**Position:** {}\n\n**Profile:** {}",
+                "**{}** `({})` reputation {} from **{}** to **{}** `({})`\n**Position:** {}\n**Report type:** {:#?}\n\n**Profile:** {}",
                 new_hacker.username,
                 new_hacker.id,
                 what_way,
@@ -63,6 +65,7 @@ pub async fn send_updated_rep(
                 new_hacker.reputation,
                 new_hacker.reputation - old_hacker.reputation,
                 new_hacker.position,
+                reputation_type,
                 new_hacker.get_hackerone_url()
             ))
             .thumbnail(&new_hacker.get_avatar_url())
